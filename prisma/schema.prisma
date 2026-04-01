@@ -13,18 +13,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id         String   @id @default(uuid())
-  fullname   String
-  email      String   @unique
-  isVerified Boolean
-  createdAt  DateTime @default(now())
+enum TransactionType {
+  FUND
+  CONVERT
+  TRADE
+}
 
-  wallet Wallet[]
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum GenderType {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum UserRole {
+  SUPERADMIN
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+}
+
+model User {
+  id             String      @id @default(uuid())
+  fullname       String
+  email          String      @unique
+  isVerified     Boolean     @default(false)
+  passwordHash   String?
+  dateOfBirth    DateTime?
+  gender         GenderType? @default(OTHER)
+  profilePicture String?
+  role           UserRole    @default(USER)
+  status         UserStatus @default(ACTIVE)
+  createdAt      DateTime    @default(now())
+
+  wallet       Wallet[]
+  transactions Transaction[]
 }
 
 model Wallet {
   id     String @id @default(uuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            TransactionType
+  fromCurrency    String?
+  toCurrency      String?
+  amount          Decimal
+  convertedAmount Decimal
+  rateUsed        String
+  status          TransactionStatus
+  reference       String
+  createdAt       DateTime          @default(now())
 }
