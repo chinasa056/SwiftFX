@@ -8,6 +8,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { EmailModule } from './email/email.module';
 import { BullModule } from '@nestjs/bullmq';
+import { JobsModule } from './jobs/jobs.module';
 
 @Module({
   imports: [
@@ -16,19 +17,19 @@ import { BullModule } from '@nestjs/bullmq';
     }),
     BullModule.forRoot({
       connection: {
-        host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT!, 10),
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
       },
       defaultJobOptions: {
         attempts: 3,
         removeOnComplete: true,
       },
     }),
-    BullModule.registerQueue({ name: 'email' }),
     AuthModule,
     WalletModule,
     TransactionModule,
     EmailModule,
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

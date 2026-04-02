@@ -2,6 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RegisterUserInput, RegisterUserResponse } from './auth.dto';
 import { CODE_TTL_MS } from 'src/common/constants/auth.constants';
+import { EmailQueue } from 'src/jobs/queues/email.queue';
+import constants from 'src/jobs/constants';
 
 interface PendingRegistration {
   code: string;
@@ -12,9 +14,12 @@ interface PendingRegistration {
 @Injectable()
 export class AuthService {
   pending = new Map<string, PendingRegistration>();
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailQueue: EmailQueue,
+  ) {}
 
-  async reisterUser(data: RegisterUserInput): Promise<RegisterUserResponse> {
+  async registerUser(data: RegisterUserInput): Promise<RegisterUserResponse> {
     // check for existing user
     const existingUser = await this.prisma.user.findUnique({
       where: { email: data.email },
@@ -47,10 +52,15 @@ export class AuthService {
       }
     }, CODE_TTL_MS + 1000);
 
-    return {message: 'Verification mail sent'}
+    // send verification mail via queue
+    await this.emailQueue.addEmailJob({
+      type: constants.SEND_VERIFICATION,
+      email: data.email,
+      code,
+    });
+
+    return { message: 'Verification mail sent' };
   }
 
-  async verifyEmailCode(){
-    
-  }
+  async verifyEmailCode() {}
 }
