@@ -4,6 +4,7 @@ import constants from './constants';
 import { EmailQueue } from './queues/email.queue';
 import { EmailProcessor } from './processors/email.processor';
 import { EmailModule } from '../email/email.module';
+import { EmailService } from 'src/email/email.service';
 
 @Global()
 @Module({
@@ -13,7 +14,7 @@ import { EmailModule } from '../email/email.module';
     }),
     EmailModule,
   ],
-  providers: [EmailQueue, EmailProcessor],
+  providers: [EmailQueue, EmailProcessor, EmailService],
   exports: [EmailQueue],
 })
 export class JobsModule {}

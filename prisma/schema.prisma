@@ -59,6 +59,7 @@ model User {
 
   wallet       Wallet[]
   transactions Transaction[]
+  registrationToken RegistrationToken[]
 }
 
 model Wallet {
@@ -80,4 +81,22 @@ model Transaction {
   status          TransactionStatus
   reference       String
   createdAt       DateTime          @default(now())
+}
+
+model RegistrationToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique @db.VarChar(512)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  firstName   String?
+  dateOfBirth DateTime?
+  gender      String?
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  @@index([token, used, expiresAt])
 }
